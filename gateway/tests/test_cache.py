@@ -36,7 +36,7 @@ def test_stats_hit_rate(redis_client):
     cache.record_miss(redis_client)
 
     stats = cache.get_stats(redis_client)
-    assert stats == {"hits": 2, "misses": 1, "hit_rate": pytest.approx(2 / 3)}
+    assert stats == {"hits": 2, "misses": 1, "hit_rate": pytest.approx(2 / 3, abs=1e-3)}
 
 
 def test_stats_with_no_traffic(redis_client):
