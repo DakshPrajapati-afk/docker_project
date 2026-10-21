@@ -1,0 +1,17 @@
+# Naive single-stage build, kept ONLY for size_compare.sh to screenshot
+# against the multi-stage Dockerfile. Not used by docker-compose.
+#
+# Problems this has that the real Dockerfile fixes:
+#   - build tools (gcc, apt caches) end up baked into the final image
+#   - runs as root
+#   - no HEALTHCHECK
+FROM python:3.12
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ ./app/
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

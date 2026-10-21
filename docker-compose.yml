@@ -1,0 +1,61 @@
+name: cachematrix-mini
+
+services:
+  redis:
+    # Pinned to an exact version (not :latest) so the build is reproducible.
+    image: redis:7.4.1-alpine
+    # No "ports:" here on purpose — other services reach Redis over the
+    # internal network at redis:6379, and it's never exposed to the host.
+    networks:
+      - cachematrix-net
+    volumes:
+      # Named volume so cached data survives `docker compose down` / restarts,
+      # unlike an anonymous volume or no volume at all.
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mock-llm:
+    build:
+      context: ./mock-llm
+    # Not exposed to the host either — only the gateway talks to it,
+    # over the internal network at mock-llm:8001.
+    networks:
+      - cachematrix-net
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  gateway:
+    build:
+      context: ./gateway
+    # This is the only service reachable from outside Docker, mapped to
+    # the same port it listens on internally.
+    ports:
+      - "8000:8000"
+    networks:
+      - cachematrix-net
+    environment:
+      - REDIS_HOST=redis
+      - MOCK_LLM_URL=http://mock-llm:8001
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-300}
+    depends_on:
+      # condition: service_healthy makes compose wait for each dependency's
+      # HEALTHCHECK to pass, not just for the container to start, before
+      # starting the gateway. Without this the gateway could boot and take
+      # requests before Redis/mock-llm are actually ready.
+      redis:
+        condition: service_healthy
+      mock-llm:
+        condition: service_healthy
+
+networks:
+  # Custom named network so the three services get a private DNS namespace
+  # (service name -> container) instead of relying on the default bridge.
+  cachematrix-net:
+    driver: bridge
+
+volumes:
+  redis-data:
