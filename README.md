@@ -139,11 +139,3 @@ Tests use `fakeredis` so they don't need a real Redis instance.
   only `gateway` on 8000 is published.
 - Cached answers and `/stats` survive `docker compose restart` because of
   the named `redis-data` volume, and expire again after `CACHE_TTL_SECONDS`.
-
-## What I learned
-
-_(placeholder — fill in after finishing the assignment write-up)_
-
--
--
--
