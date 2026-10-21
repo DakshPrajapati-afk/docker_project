@@ -111,6 +111,18 @@ pytest
 
 Tests use `fakeredis` so they don't need a real Redis instance.
 
+## Verified locally
+
+- `docker compose up --build` builds all three images and starts them in
+  the right order (`gateway` waits on `redis` and `mock-llm` reporting
+  healthy).
+- `gateway` and `mock-llm` run as the non-root `appuser` (`docker compose
+  exec gateway whoami` -> `appuser`).
+- `redis` (6379) and `mock-llm` (8001) are unreachable from the host;
+  only `gateway` on 8000 is published.
+- Cached answers and `/stats` survive `docker compose restart` because of
+  the named `redis-data` volume, and expire again after `CACHE_TTL_SECONDS`.
+
 ## What I learned
 
 _(placeholder — fill in after finishing the assignment write-up)_
