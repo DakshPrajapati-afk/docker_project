@@ -101,12 +101,29 @@ build keeps the full `python:3.12` image (compilers, headers, apt
 metadata) in its final layer, while the multi-stage build only copies
 the installed Python packages into a `python:3.12-slim` base.
 
+## Local dev environment (optional)
+
+Docker Compose is all you need to run the stack, but if you want IDE
+autocomplete/type-checking or to run `pytest` outside a container, create
+a local virtualenv per service (Python 3.12):
+
+```bash
+cd gateway
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+
+cd ../mock-llm
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+`.venv/` is git-ignored in both services.
+
 ## Tests
 
 ```bash
 cd gateway
-pip install -r requirements-dev.txt
-pytest
+.venv/bin/pytest   # or: pip install -r requirements-dev.txt && pytest
 ```
 
 Tests use `fakeredis` so they don't need a real Redis instance.
