@@ -88,6 +88,19 @@ Builds `gateway/Dockerfile.naive` (single-stage, ships build tools and
 runs as root) alongside `gateway/Dockerfile` (multi-stage, slim runtime,
 non-root user) and prints both image sizes for comparison/screenshot.
 
+Measured on this machine:
+
+```
+REPOSITORY:TAG                      SIZE
+cachematrix-gateway:naive           1.68GB
+cachematrix-gateway:multistage      344MB
+```
+
+The multi-stage build is roughly 80% smaller, mainly because the naive
+build keeps the full `python:3.12` image (compilers, headers, apt
+metadata) in its final layer, while the multi-stage build only copies
+the installed Python packages into a `python:3.12-slim` base.
+
 ## Tests
 
 ```bash
